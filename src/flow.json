@@ -1,7 +1,11 @@
 [{
 	"id": "49e9c02e.2d462",
 	"type": "tab",
-	"label": "Flow 1"
+	"label": "Capture image"
+},{
+	"id": "ca2c059a.4b0338",
+	"type": "tab",
+	"label": "Process image"
 },{
 	"id": "5e950362.93446c",
 	"type": "mqtt-broker",
@@ -34,58 +38,23 @@
 	"id": "cdd17078.d000e",
 	"type": "function",
 	"z": "49e9c02e.2d462",
-	"name": "Capture image",
-	"func": "var captureId = msg.payload.capture_id || 1;\n\nvar fileName = \"/var/image/image_\" + captureId + \".jpg\";\nmsg.fileName = fileName;\nmsg.capture_id = captureId;\n\nreturn msg;",
+	"name": "Setup image capture",
+	"func": "var captureId = msg.payload.captureId || 1;\nvar deviceId = global.get(\"deviceId\");\nvar senderId = msg.topic.replace(/cmd\\/(.+?)\\/.*/, \"$1\");\n\nmsg.filepath = \"/var/image\"\nmsg.filename = \"/image_\" + captureId + \"_\" + deviceId + \".jpg\";\nmsg.captureId = captureId;\nmsg.deviceId = deviceId;\nmsg.senderId = senderId;\n\nreturn msg;",
 	"outputs": 1,
 	"noerr": 0,
-	"x": 247.5,
+	"x": 267.5,
 	"y": 241,
 	"wires": [["6a98d1e1.1d0f8",
-	"e7d546f.e9681b8"]]
-},{
-	"id": "e7d546f.e9681b8",
-	"type": "function",
-	"z": "49e9c02e.2d462",
-	"name": "Process image",
-	"func": "var newMsg = {\n    payload: {\n        capture_id: msg.capture_id,\n        fileName: msg.fileName,\n        count: 100\n    }\n};\n\nreturn newMsg;",
-	"outputs": 1,
-	"noerr": 0,
-	"x": 487.5,
-	"y": 208,
-	"wires": [["ea8e1bdd.4f4508",
-	"7fdf210a.cac21"]]
-},{
-	"id": "ea8e1bdd.4f4508",
-	"type": "mqtt out",
-	"z": "49e9c02e.2d462",
-	"name": "",
-	"topic": "evt/DEVICE_ID/count-result",
-	"qos": "",
-	"retain": "",
-	"broker": "5e950362.93446c",
-	"x": 775.5,
-	"y": 208,
-	"wires": []
-},{
-	"id": "7fdf210a.cac21",
-	"type": "debug",
-	"z": "49e9c02e.2d462",
-	"name": "Result msg",
-	"active": false,
-	"console": "false",
-	"complete": "true",
-	"x": 724.5,
-	"y": 162,
-	"wires": []
+	"eee80c2a.99995"]]
 },{
 	"id": "13134b61.e62f05",
 	"type": "debug",
 	"z": "49e9c02e.2d462",
-	"name": "Request msg",
-	"active": false,
+	"name": "Debug request msg",
+	"active": true,
 	"console": "false",
 	"complete": "true",
-	"x": 590.5,
+	"x": 610.5,
 	"y": 63,
 	"wires": []
 },{
@@ -96,27 +65,215 @@
 	"x": 370.5,
 	"y": 64,
 	"wires": [["13134b61.e62f05",
-	"6a11d72a.804198"]]
+	"cdd17078.d000e"]]
 },{
 	"id": "6a98d1e1.1d0f8",
 	"type": "debug",
 	"z": "49e9c02e.2d462",
 	"name": "Debug capture image",
-	"active": false,
+	"active": true,
 	"console": "false",
 	"complete": "true",
-	"x": 503.5,
-	"y": 268,
+	"x": 476.5,
+	"y": 167,
 	"wires": []
 },{
-	"id": "6a11d72a.804198",
+	"id": "eee80c2a.99995",
+	"type": "camerapi-takephoto",
+	"z": "49e9c02e.2d462",
+	"filemode": "1",
+	"filename": "",
+	"filedefpath": "0",
+	"filepath": "",
+	"fileformat": "jpeg",
+	"resolution": "6",
+	"rotation": "0",
+	"fliph": "0",
+	"flipv": "0",
+	"brightness": "50",
+	"contrast": "0",
+	"sharpness": "0",
+	"imageeffect": "none",
+	"name": "",
+	"x": 523.5,
+	"y": 241,
+	"wires": [["a93b01bb.64bf2",
+	"1f5c306f.d6dae"]]
+},{
+	"id": "a93b01bb.64bf2",
+	"type": "debug",
+	"z": "49e9c02e.2d462",
+	"name": "Debug photo msg",
+	"active": true,
+	"console": "false",
+	"complete": "true",
+	"x": 741.5,
+	"y": 164,
+	"wires": []
+},{
+	"id": "3a9a1ca1.2e0274",
+	"type": "switch",
+	"z": "49e9c02e.2d462",
+	"name": "",
+	"property": "processLocal",
+	"propertyType": "global",
+	"rules": [{
+		"t": "true"
+	},
+	{
+		"t": "else"
+	}],
+	"checkall": "true",
+	"outputs": 2,
+	"x": 383.5,
+	"y": 381,
+	"wires": [["a06aa63d.941488"],
+	["73217669.a2dff8"]]
+},{
+	"id": "73217669.a2dff8",
 	"type": "function",
 	"z": "49e9c02e.2d462",
-	"name": "Init MQTT",
-	"func": "msg.senderId = msg.topic.replace(/cmd\\/(.*)\\/.*/g, \"$1\");\nreturn msg;",
+	"name": "Load image",
+	"func": "var fs = global.get(\"fsModule\");\nvar image = msg.payload.filepath + \"/\" + msg.payload.filename;\n\n// assumes file size within mqtt limits\n// TODO implement chunking files > size limit\nfs.readFileSync(image, function(err, data) {\n    var base64data = new Buffer(data).toString('base64');\n    msg.payload.data = base64data;\n    msg.payload.index = 0;\n    msg.payload.total = 1;\n});\n\nreturn msg;",
 	"outputs": 1,
 	"noerr": 0,
-	"x": 146.5,
-	"y": 149,
-	"wires": [["cdd17078.d000e"]]
+	"x": 554.5,
+	"y": 434,
+	"wires": [["3cfb79b4.823246",
+	"c8f21bb0.359be8"]]
+},{
+	"id": "3cfb79b4.823246",
+	"type": "mqtt out",
+	"z": "49e9c02e.2d462",
+	"name": "",
+	"topic": "evt/DEVICE_ID/image-data",
+	"qos": "",
+	"retain": "",
+	"broker": "5e950362.93446c",
+	"x": 787.5,
+	"y": 434,
+	"wires": []
+},{
+	"id": "1f5c306f.d6dae",
+	"type": "function",
+	"z": "49e9c02e.2d462",
+	"name": "Setup msg",
+	"func": "msg.payload = {\n  captureId: msg.captureId,\n  filepath: msg.payload.filepath,\n  filename: msg.payload.filename,\n  deviceId: msg.deviceId\n};\n\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 229.5,
+	"y": 382,
+	"wires": [["3a9a1ca1.2e0274"]]
+},{
+	"id": "c8f21bb0.359be8",
+	"type": "debug",
+	"z": "49e9c02e.2d462",
+	"name": "Debug load image",
+	"active": true,
+	"console": "false",
+	"complete": "true",
+	"x": 757.5,
+	"y": 519,
+	"wires": []
+},{
+	"id": "a06aa63d.941488",
+	"type": "link out",
+	"z": "49e9c02e.2d462",
+	"name": "Image-file out",
+	"links": ["71f0ae10.a27b9"],
+	"x": 543.5,
+	"y": 359,
+	"wires": []
+},{
+	"id": "71f0ae10.a27b9",
+	"type": "link in",
+	"z": "ca2c059a.4b0338",
+	"name": "Image-file in",
+	"links": ["a06aa63d.941488"],
+	"x": 114.5,
+	"y": 104,
+	"wires": [["8e934d72.5ff0f",
+	"ea890dc8.f9c0c"]]
+},{
+	"id": "ff2b5113.3084a",
+	"type": "mqtt out",
+	"z": "ca2c059a.4b0338",
+	"name": "",
+	"topic": "evt/DEVICE_ID/count-result",
+	"qos": "",
+	"retain": "",
+	"broker": "5e950362.93446c",
+	"x": 591.5,
+	"y": 104,
+	"wires": []
+},{
+	"id": "7cffbf83.fc33b",
+	"type": "comment",
+	"z": "49e9c02e.2d462",
+	"name": "Output msg format",
+	"info": "The payload of the output msg contains the following elements:\n## Main fields\n* **captureId** - The identifer for this capture set.\n* **deviceId** - The unique identifier for the device that captured the image. The combination of captureId and deviceId should be unique.\n* **filepath** - The path to the image file.\n* **filename** - The name of the image file.\n\n## Optional fields\nIf the processLocal flag is not 'true' then the image file contents will be loaded\ninto the msg. Depending on the size of the image, the data may be chunked into separate messages.\n* **index** - The index of the current image-data in the list of image chunks. If the image is provided in a single message, this value will be '0'.\n* **total** - The total number of chunks the image has been divided into. If the image is provided in a single messages, this value will be '1'.\n* **data** - The contents of the image file in base64 encoding.",
+	"x": 683.5,
+	"y": 347,
+	"wires": []
+},{
+	"id": "f2c3089f.6a5098",
+	"type": "comment",
+	"z": "49e9c02e.2d462",
+	"name": "Input message format",
+	"info": "The incoming message is expected to contain the following properties in the payload, at a minumum:\n\n* **captureId** - The unique identifier for the count capture.\n* **createDate** - The timestamp when the capture was initiated\n",
+	"x": 220.5,
+	"y": 115,
+	"wires": []
+},{
+	"id": "f2079af1.1e9c08",
+	"type": "comment",
+	"z": "ca2c059a.4b0338",
+	"name": "Input message format",
+	"info": "The payload of the input msg contains the following elements:\n* **captureId** - The identifer for this capture set.\n* **deviceId** - The unique identifier for the device that captured the image. The combination of captureId and deviceId should be unique.\n* **filepath** - The path to the image file.\n* **filename** - The name of the image file.",
+	"x": 187.5,
+	"y": 176,
+	"wires": []
+},{
+	"id": "8e934d72.5ff0f",
+	"type": "function",
+	"z": "ca2c059a.4b0338",
+	"name": "Process image",
+	"func": "var cv = global.get('cvModule');\n\nvar filename = msg.payload.filepath + \"/\" + msg.payload.filename;\n\nvar count = 0;\ncv.readImage(filename, function(err, im) {\n        im.detectObject(cv.FACE_CASCADE, {}, function(err, faces) {\n                node.log(\"Found items: \" + faces.length);\n                count = faces.length;\n                \n                for (var i = 0, l = faces.length; i < l; i++) {\n                        var x = faces[i];\n                        im.ellipse(x.x + x.width/2, x.y + x.height/2, x.width/2, x.height/2);\n                }\n                // Replace the file with one marked up\n                // Can this be done this way or should it be written to a temp\n                // file then replace the original one?\n                im.save(filename);\n        });\n});\nmsg.payload.count = count;\n\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"x": 274.5,
+	"y": 104,
+	"wires": [["ff2b5113.3084a",
+	"b9e6322e.9e9de"]]
+},{
+	"id": "ea890dc8.f9c0c",
+	"type": "debug",
+	"z": "ca2c059a.4b0338",
+	"name": "Debug input",
+	"active": true,
+	"console": "false",
+	"complete": "true",
+	"x": 295.5,
+	"y": 53,
+	"wires": []
+},{
+	"id": "b9e6322e.9e9de",
+	"type": "debug",
+	"z": "ca2c059a.4b0338",
+	"name": "Debug output",
+	"active": true,
+	"console": "false",
+	"complete": "true",
+	"x": 543.5,
+	"y": 55,
+	"wires": []
+},{
+	"id": "5d877854.1c1468",
+	"type": "comment",
+	"z": "ca2c059a.4b0338",
+	"name": "Output message format",
+	"info": "The payload of the putput msg contains the following elements:\n* **captureId** - The identifer for this capture set.\n* **deviceId** - The unique identifier for the device that captured the image. The combination of captureId and deviceId should be unique.\n* **filepath** - The path to the image file.\n* **filename** - The name of the image file.\n* **count** - The number of items in the image file.",
+	"x": 581.5,
+	"y": 172,
+	"wires": []
 }]

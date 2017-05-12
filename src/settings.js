@@ -175,7 +175,10 @@ module.exports = {
     //    context.global.os
 
     functionGlobalContext: {
-    	deviceId: "DEVICE_ID"
+    	deviceId: "DEVICE_ID",
+    	processLocal: true,
+    	fsModule: require('fs'),
+    	cvModule: require('opencv')
         // os:require('os'),
         // octalbonescript:require('octalbonescript'),
         // jfive:require("johnny-five"),

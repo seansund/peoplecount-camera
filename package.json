@@ -2,14 +2,15 @@
   "name": "peoplecount-camera",
   "description": "peoplecount-camera description",
   "version": "1.0.0",
-  "main": "app.js",
   "scripts": {
-  	"setup": "grunt",
+    "setup": "grunt",
     "start": "grunt && node node_modules/node-red/red.js --userDir ./dist --settings ./dist/settings.js flow.json",
     "start-dev": "node node_modules/node-red/red.js --userDir ./src --settings ./src/settings.js flow.json"
   },
   "dependencies": {
-    "node-red": "^0.16.2"
+    "fs": "0.0.1-security",
+    "node-red": "^0.16.2",
+    "node-red-contrib-camerapi": "0.0.34"
   },
   "properties": {
     "org-id": "dex",
