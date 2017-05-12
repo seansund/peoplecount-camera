@@ -10,7 +10,8 @@
   "dependencies": {
     "fs": "0.0.1-security",
     "node-red": "^0.16.2",
-    "node-red-contrib-camerapi": "0.0.34"
+    "node-red-contrib-camerapi": "0.0.34",
+    "opencv": "^6.0.0"
   },
   "properties": {
     "org-id": "dex",
