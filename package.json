@@ -16,7 +16,8 @@
   "properties": {
     "org-id": "dex",
     "device-type": "camera",
-    "broker-host": "minibian"
+    "broker-host": "minibian",
+    "disable-editor": false
   },
   "devDependencies": {
     "grunt": "^1.0.1",
