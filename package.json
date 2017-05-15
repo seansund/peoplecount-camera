@@ -3,8 +3,9 @@
   "description": "peoplecount-camera description",
   "version": "1.0.0",
   "scripts": {
-    "setup": "grunt",
-    "start": "grunt && node node_modules/node-red/red.js --userDir ./dist --settings ./dist/settings.js flow.json",
+    "setup": "sudo apt-get install -y python-picamera && grunt",
+    "prestart": "npm run setup",
+    "start": "node node_modules/node-red/red.js --userDir ./dist --settings ./dist/settings.js flow.json",
     "start-dev": "node node_modules/node-red/red.js --userDir ./src --settings ./src/settings.js flow.json"
   },
   "dependencies": {
